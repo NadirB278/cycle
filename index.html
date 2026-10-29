@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Cycle</title>
+  <meta name="description" content="Suivi des règles sous pilule, 100 % privé et hors connexion.">
+  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cycle">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-375x667-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-375x667-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-375x812-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-375x812-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-414x896-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-414x896-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-390x844-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-390x844-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-393x852-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-393x852-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-402x874-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-402x874-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-430x932-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-430x932-dark.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="icons/splash/splash-440x956-light.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="icons/splash/splash-440x956-dark.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ═════════ Aujourd'hui ═════════ -->
+  <section class="view is-active" id="view-today" data-view="today" aria-label="Aujourd’hui">
+    <header class="navbar"><div class="navbar-title">Aujourd’hui</div></header>
+    <div class="scroller">
+      <div class="large-header reveal" style="--i:0">
+        <p class="eyebrow" id="today-eyebrow"></p>
+        <h1 class="large-title">Aujourd’hui</h1>
+      </div>
+
+      <div class="stack">
+        <div class="card ring-card pressable reveal" style="--i:1" data-go="calendar" role="button" tabindex="0">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 280 280" aria-hidden="true">
+              <defs>
+                <linearGradient id="ring-grad" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="300" y2="300">
+                  <stop offset="0" stop-color="#FF375F"/>
+                  <stop offset="1" stop-color="#FF6B8B"/>
+                </linearGradient>
+                <filter id="knob" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.25"/>
+                </filter>
+                <filter id="ring-glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="7"/>
+                </filter>
+              </defs>
+              <g id="ring-ticks"></g>
+              <circle class="ring-track" cx="140" cy="140" r="112"/>
+              <g class="ring-rot">
+                <circle class="ring-arc ring-halo" id="ring-halo" stroke="url(#ring-grad)" cx="140" cy="140" r="112" filter="url(#ring-glow)"/>
+                <circle class="ring-arc" id="ring-arc" stroke="url(#ring-grad)" cx="140" cy="140" r="112"/>
+              </g>
+              <g class="ring-dot" id="ring-dot">
+                <circle class="ring-dot-halo" cx="140" cy="28" r="15" filter="url(#knob)"/>
+                <circle class="ring-dot-core" cx="140" cy="28" r="7.5"/>
+              </g>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-day tnum" id="ring-day"></div>
+              <div class="ring-sub" id="ring-sub"></div>
+            </div>
+          </div>
+          <div class="ring-stats" id="ring-stats"></div>
+        </div>
+
+        <div class="card pressable reveal" style="--i:2" id="card-next" role="button" tabindex="0"></div>
+        <div class="card pressable reveal" style="--i:3" id="card-pack" data-go="settings" role="button" tabindex="0"></div>
+        <div class="card reveal" style="--i:4" id="card-week"></div>
+      </div>
+      <p class="fine-print reveal" style="--i:5">Prévisions calculées à partir de vos réglages. Cycle ne remplace pas l’avis d’un professionnel de santé.</p>
+    </div>
+  </section>
+
+  <!-- ═════════ Calendrier ═════════ -->
+  <section class="view" id="view-calendar" data-view="calendar" aria-label="Calendrier">
+    <header class="navbar navbar-cal is-scrolled">
+      <div class="navbar-row">
+        <span class="navbar-side"></span>
+        <div class="navbar-title">Calendrier</div>
+        <span class="navbar-side navbar-side-end"><button class="bar-btn" id="cal-today">Aujourd’hui</button></span>
+      </div>
+      <div class="weekdays" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    </header>
+    <div class="scroller cal-scroller" id="cal-scroller">
+      <div class="cal-spacer" id="cal-spacer"></div>
+      <div id="cal-months"></div>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span class="legend-item"><i class="sw sw-p"></i>Prévues</span>
+      <span class="legend-item"><i class="sw sw-c"></i>Confirmées</span>
+    </div>
+  </section>
+
+  <!-- ═════════ Réglages ═════════ -->
+  <section class="view" id="view-settings" data-view="settings" aria-label="Réglages">
+    <header class="navbar"><div class="navbar-title">Réglages</div></header>
+    <div class="scroller">
+      <div class="large-header">
+        <h1 class="large-title">Réglages</h1>
+      </div>
+
+      <h2 class="group-header">Cycle</h2>
+      <div class="group">
+        <button class="row row-link" id="row-last">
+          <span class="row-icon"><svg viewBox="0 0 20 20"><rect x="3" y="4.25" width="14" height="12.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 8.25h14M7 2.75v3M13 2.75v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="row-text"><span class="row-title">Dernières règles</span><span class="row-sub">Date du premier jour</span></span>
+          <span class="row-value tnum" id="val-last"></span>
+          <svg class="chev" viewBox="0 0 8 14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="row" id="row-period">
+          <span class="row-icon"><svg viewBox="0 0 20 20"><path d="M10 3.2S5.4 8.4 5.4 11.9a4.6 4.6 0 0 0 9.2 0C14.6 8.4 10 3.2 10 3.2Z" fill="currentColor"/></svg></span>
+          <span class="row-text"><span class="row-title">Durée des règles</span><span class="row-sub tnum" data-show="periodLength"></span></span>
+          <div class="stepper" data-key="periodLength">
+            <button data-step="-1" aria-label="Diminuer"><svg viewBox="0 0 14 14"><path d="M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+            <i></i>
+            <button data-step="1" aria-label="Augmenter"><svg viewBox="0 0 14 14"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-icon"><svg viewBox="0 0 20 20"><path d="M15.6 7.4A6.2 6.2 0 1 0 16.2 11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M16.3 3.6v4.1h-4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="row-text"><span class="row-title" id="cycle-label">Durée du cycle</span><span class="row-sub tnum" data-show="cycleLength"></span></span>
+          <div class="stepper" data-key="cycleLength">
+            <button data-step="-1" aria-label="Diminuer"><svg viewBox="0 0 14 14"><path d="M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+            <i></i>
+            <button data-step="1" aria-label="Augmenter"><svg viewBox="0 0 14 14"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="group-header">Type de pilule</h2>
+      <div class="group group-pad">
+        <div class="segmented" data-key="pill" role="radiogroup" aria-label="Type de pilule">
+          <span class="seg-thumb"></span>
+          <button data-v="21-7" role="radio">21+7</button>
+          <button data-v="24-4" role="radio">24+4</button>
+          <button data-v="continu" role="radio">Continu</button>
+        </div>
+      </div>
+      <p class="group-footer" data-pill-help></p>
+
+      <div class="group group-spaced">
+        <button class="row row-destructive" id="row-reset">Réinitialiser</button>
+      </div>
+      <p class="group-footer">Efface vos réglages et les jours marqués.</p>
+
+      <div class="privacy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <p><strong>Vos données restent sur cet iPhone.</strong><br>Aucun compte, aucun serveur, aucun suivi.</p>
+        <p class="version">Cycle 1.0</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ Barre d'onglets ═════════ -->
+  <nav class="tabbar" role="tablist">
+    <button class="tab is-active" data-tab="today" role="tab" aria-selected="true">
+      <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="1.7" opacity=".35"/><path d="M14 4a10 10 0 0 1 8.66 5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M14 9.4s-3.3 3.7-3.3 6.2a3.3 3.3 0 0 0 6.6 0c0-2.5-3.3-6.2-3.3-6.2Z" fill="currentColor"/></svg>
+      <span>Aujourd’hui</span>
+    </button>
+    <button class="tab" data-tab="calendar" role="tab" aria-selected="false">
+      <svg viewBox="0 0 28 28" aria-hidden="true"><rect x="4.5" y="5.5" width="19" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 10.75h19M9.5 3.5v4M18.5 3.5v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9.75" cy="15" r="1.2" fill="currentColor"/><circle cx="14" cy="15" r="1.2" fill="currentColor"/><circle cx="18.25" cy="15" r="1.2" fill="currentColor"/><circle cx="9.75" cy="19.25" r="1.2" fill="currentColor"/><circle cx="14" cy="19.25" r="1.2" fill="currentColor"/></svg>
+      <span>Calendrier</span>
+    </button>
+    <button class="tab" data-tab="settings" role="tab" aria-selected="false">
+      <svg viewBox="0 0 28 28" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h11.2M20.8 8H24M4 14h3.2M12.8 14H24M4 20h9.2M18.8 20H24"/><circle cx="18" cy="8" r="2.8"/><circle cx="10" cy="14" r="2.8"/><circle cx="16" cy="20" r="2.8"/></g></svg>
+      <span>Réglages</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ═════════ Onboarding ═════════ -->
+<div id="onboarding" hidden>
+  <div class="ob-top">
+    <button class="bar-btn ob-back" id="ob-back" aria-label="Retour">
+      <svg viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour
+    </button>
+  </div>
+  <div class="ob-viewport">
+    <div class="ob-track" id="ob-track">
+      <section class="ob-page">
+        <div class="ob-hero">
+          <svg class="ob-ring" viewBox="0 0 280 280" aria-hidden="true">
+            <defs>
+              <linearGradient id="ob-grad" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="300" y2="300">
+                <stop offset="0" stop-color="#FF375F"/><stop offset="1" stop-color="#FF6B8B"/>
+              </linearGradient>
+              <filter id="ob-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+            </defs>
+            <circle class="ring-track" cx="140" cy="140" r="112"/>
+            <g class="ring-rot">
+              <circle class="ob-arc ob-halo" stroke="url(#ob-grad)" cx="140" cy="140" r="112" filter="url(#ob-glow)"/>
+              <circle class="ob-arc" stroke="url(#ob-grad)" cx="140" cy="140" r="112"/>
+            </g>
+            <g class="ob-orbit">
+              <circle class="ring-dot-halo" cx="140" cy="28" r="15" filter="url(#knob)"/>
+              <circle class="ring-dot-core" cx="140" cy="28" r="7.5"/>
+            </g>
+            <path class="ob-drop" fill="url(#ob-grad)" d="M140 104s-26 29-26 49a26 26 0 0 0 52 0c0-20-26-49-26-49Z"/>
+          </svg>
+        </div>
+        <h1 class="ob-title">Bienvenue dans Cycle</h1>
+        <p class="ob-lead">Le calendrier de vos règles sous pilule, précis et toujours à portée de main.</p>
+        <ul class="features">
+          <li><span class="f-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 9.75h17M8.5 3v3.5M15.5 3v3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><rect x="7" y="13" width="10" height="3.5" rx="1.75" fill="currentColor"/></svg></span><span><strong>Prévisions précises</strong>Vos prochaines règles, jusqu’à deux ans à l’avance.</span></li>
+          <li><span class="f-icon"><svg viewBox="0 0 24 24"><rect x="2.8" y="8.6" width="18.4" height="6.8" rx="3.4" transform="rotate(-35 12 12)" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8.6v6.8" transform="rotate(-35 12 12)" stroke="currentColor" stroke-width="1.7"/></svg></span><span><strong>Suivi de la plaquette</strong>Le jour de votre pilule et la prochaine plaquette.</span></li>
+          <li><span class="f-icon"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span><span><strong>Privé par nature</strong>Tout reste sur votre iPhone. Aucun compte, aucun serveur.</span></li>
+        </ul>
+      </section>
+
+      <section class="ob-page">
+        <h1 class="ob-title ob-title-left">Dernières règles</h1>
+        <p class="ob-lead ob-lead-left">Quel jour ont commencé vos dernières règles&nbsp;?</p>
+        <div class="card picker-card" id="ob-picker"></div>
+      </section>
+
+      <section class="ob-page">
+        <h1 class="ob-title ob-title-left">Votre pilule</h1>
+        <p class="ob-lead ob-lead-left">Ces réglages permettent de prévoir précisément vos prochaines règles.</p>
+        <div class="group">
+          <div class="row">
+            <span class="row-icon"><svg viewBox="0 0 20 20"><path d="M10 3.2S5.4 8.4 5.4 11.9a4.6 4.6 0 0 0 9.2 0C14.6 8.4 10 3.2 10 3.2Z" fill="currentColor"/></svg></span>
+            <span class="row-text"><span class="row-title">Durée des règles</span><span class="row-sub tnum" data-show="periodLength"></span></span>
+            <div class="stepper" data-key="periodLength">
+              <button data-step="-1" aria-label="Diminuer"><svg viewBox="0 0 14 14"><path d="M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+              <i></i>
+              <button data-step="1" aria-label="Augmenter"><svg viewBox="0 0 14 14"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <h2 class="group-header">Type de pilule</h2>
+        <div class="group group-pad">
+          <div class="segmented" data-key="pill" role="radiogroup" aria-label="Type de pilule">
+            <span class="seg-thumb"></span>
+            <button data-v="21-7" role="radio">21+7</button>
+            <button data-v="24-4" role="radio">24+4</button>
+            <button data-v="continu" role="radio">Continu</button>
+          </div>
+        </div>
+        <p class="group-footer" data-pill-help></p>
+      </section>
+    </div>
+  </div>
+  <div class="ob-bottom">
+    <div class="dots" id="ob-dots"><i class="is-active"></i><i></i><i></i></div>
+    <button class="btn btn-primary" id="ob-next">Continuer</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
