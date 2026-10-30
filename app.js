@@ -11,11 +11,27 @@ const PILLS = {
   'continu': { label: 'Continu', pause: 0, help: 'Prise sans interruption ni pause : aucune règle n’est prévue.' },
 };
 const PILL_KEYS = Object.keys(PILLS);
-const LIMITS = { periodLength: [2, 10], cycleLength: [21, 45] };
-const DEFAULTS = { v: 1, lastStart: null, periodLength: 5, cycleLength: 28, pill: '21-7', marked: [], removed: [], onboarded: false };
+const PACK = 28;          // une plaquette = 28 jours, toujours
+const MAX_PERIOD = 14;    // durée maximale des règles prévues
+const DEFAULTS = { v: 2, packStart: null, periodFrom: 24, periodTo: 28, pill: '21-7', marked: [], removed: [], onboarded: false };
 const MONTHS_BEFORE = 6, MONTHS_AFTER = 24;
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+// Écran d'accueil iOS : avec la barre d'état translucide, la fenêtre peut être
+// plus courte que l'écran de la hauteur de cette barre, ce qui laisse une bande
+// vide en bas. On cale alors l'app sur la hauteur réelle de l'écran.
+function fitScreen() {
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  const portrait = innerHeight >= innerWidth;
+  const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  let h = innerHeight;
+  if (standalone && full > h && full - h <= 80) h = full;
+  document.documentElement.style.setProperty('--app-h', `${h}px`);
+}
+fitScreen();
+addEventListener('resize', fitScreen);
+addEventListener('orientationchange', () => setTimeout(fitScreen, 300));
 if (/[?&]sim\b/.test(location.search)) document.documentElement.classList.add('sim');
 
 const $ = (s, root = document) => root.querySelector(s);
@@ -53,14 +69,27 @@ let X = new Set(S.removed);  // jours prévus retirés
 
 function sanitize(raw) {
   const s = { ...DEFAULTS, ...raw };
-  const clamp = (v, [lo, hi], def) => Number.isInteger(v) ? Math.min(hi, Math.max(lo, v)) : def;
-  s.periodLength = clamp(s.periodLength, LIMITS.periodLength, DEFAULTS.periodLength);
-  s.cycleLength = clamp(s.cycleLength, LIMITS.cycleLength, DEFAULTS.cycleLength);
   if (!PILLS[s.pill]) s.pill = DEFAULTS.pill;
-  if (!Number.isInteger(s.lastStart)) s.lastStart = null;
+  // Version 1 : date des dernières règles + durée. La pause commençait le
+  // premier jour des règles, d'où la date de début de plaquette.
+  if (raw.packStart === undefined && Number.isInteger(raw.lastStart)) {
+    const active = PACK - PILLS[s.pill].pause;
+    const len = Number.isInteger(raw.periodLength) ? Math.min(10, Math.max(1, raw.periodLength)) : 5;
+    s.packStart = raw.lastStart - (active < PACK ? active : 0);
+    s.periodFrom = active < PACK ? active + 1 : DEFAULTS.periodFrom;
+    s.periodTo = mod(s.periodFrom + len - 2, PACK) + 1;
+  }
+  const inPack = v => Number.isInteger(v) && v >= 1 && v <= PACK;
+  if (!inPack(s.periodFrom) || !inPack(s.periodTo) || mod(s.periodTo - s.periodFrom, PACK) + 1 > MAX_PERIOD) {
+    s.periodFrom = DEFAULTS.periodFrom;
+    s.periodTo = DEFAULTS.periodTo;
+  }
+  if (!Number.isInteger(s.packStart)) s.packStart = null;
   s.marked = Array.isArray(s.marked) ? s.marked.filter(Number.isInteger) : [];
   s.removed = Array.isArray(s.removed) ? s.removed.filter(Number.isInteger) : [];
-  s.onboarded = !!s.onboarded && s.lastStart !== null;
+  s.onboarded = !!s.onboarded && s.packStart !== null;
+  delete s.lastStart; delete s.periodLength; delete s.cycleLength;
+  s.v = 2;
   return s;
 }
 function load() {
@@ -78,16 +107,35 @@ function save() {
 
 /* ═════════ Modèle ═════════ */
 
+// Tout part de la plaquette : les règles reviennent aux mêmes pilules
+// (de periodFrom à periodTo) dans chaque plaquette de 28 jours.
 const isContinu = () => S.pill === 'continu';
-const cycleDay = d => mod(d - S.lastStart, S.cycleLength) + 1;
-const predicted = d => !isContinu() && S.lastStart !== null && cycleDay(d) <= S.periodLength;
+const packDay = d => mod(d - S.packStart, PACK) + 1;
+const periodLen = () => mod(S.periodTo - S.periodFrom, PACK) + 1;
+const periodDay = d => mod(packDay(d) - S.periodFrom, PACK) + 1;
+const predicted = d => !isContinu() && S.packStart !== null && periodDay(d) <= periodLen();
 const status = d => M.has(d) ? 'c' : (predicted(d) && !X.has(d) ? 'p' : null);
 
-// La pause de la plaquette commence le premier jour des règles.
 function pack(d) {
-  const L = S.cycleLength, pause = PILLS[S.pill].pause, active = L - pause;
-  const day = mod(d - S.lastStart + (pause ? active : 0), L) + 1;
-  return { day, L, pause, active, inPause: day > active, next: d + L - day + 1 };
+  const pause = PILLS[S.pill].pause, active = PACK - pause, day = packDay(d);
+  return { day, L: PACK, pause, active, inPause: day > active, next: d + PACK - day + 1 };
+}
+
+// « 24e pilule », « 2e jour de pause », « 26e pilule (placebo) »
+const ordF = n => n === 1 ? '1re' : `${n}e`;
+const ordM = n => n === 1 ? '1er' : `${n}e`;
+function pillName(n) {
+  const active = PACK - PILLS[S.pill].pause;
+  if (n <= active) return `${ordF(n)} pilule`;
+  return S.pill === '21-7' ? `${ordM(n - active)} jour de pause` : `${ordF(n)} pilule (placebo)`;
+}
+// « de la 24e pilule au 2e jour de pause »
+function rangeText() {
+  const isDay = s => / jour /.test(s);
+  const from = pillName(S.periodFrom), to = pillName(S.periodTo);
+  if (S.periodFrom === S.periodTo) return `${isDay(from) ? 'le' : 'la'} ${from}`;
+  const next = S.periodTo < S.periodFrom ? ' de la plaquette suivante' : '';
+  return `${isDay(from) ? 'du' : 'de la'} ${from} ${isDay(to) ? 'au' : 'à la'} ${to}${next}`;
 }
 
 function streak(d) {
@@ -97,7 +145,8 @@ function streak(d) {
   return { start: a, end: b };
 }
 
-const nextStart = t => t - cycleDay(t) + 1 + S.cycleLength;
+const currentPackStart = () => { const t = todayNum(); return t - packDay(t) + 1; };
+const nextStart = t => t + (mod(S.periodFrom - packDay(t), PACK) || PACK);
 
 /* ═════════ Icônes ═════════ */
 
@@ -132,18 +181,19 @@ function renderTicks(L) {
 }
 
 function renderRing(t, intro) {
-  const L = S.cycleLength, cont = isContinu();
-  const cd = cont ? pack(t).day : cycleDay(t);
+  const L = PACK, cont = isContinu(), p = pack(t), cd = p.day;
+  // L'anneau est la plaquette : l'arc couvre les pilules des règles.
   // Mode continu : l'arc montre l'avancée dans la plaquette.
-  const visible = cont ? (CIRC * (cd - 0.5)) / L : (CIRC * S.periodLength) / L;
+  const visible = cont ? (CIRC * (cd - 0.5)) / L : (CIRC * periodLen()) / L;
   const len = Math.max(0.01, visible - SW);
   const angle = ((cd - 0.5) / L) * 360;
   renderTicks(L);
 
+  $('#ring-rot').style.transform = `rotate(${-90 + (cont ? 0 : ((S.periodFrom - 1) / L) * 360)}deg)`;
   arcs.forEach(a => {
     a.style.strokeDasharray = `${len} ${2 * CIRC}`;
   });
-  
+
   if (intro && !reduceMotion.matches) {
     arcs.forEach(a => { a.style.transition = 'none'; a.style.strokeDashoffset = String(len + SW); });
     dot.style.transition = 'none';
@@ -162,15 +212,21 @@ function renderRing(t, intro) {
     dot.style.opacity = '1';
   }
 
-  $('#ring-day').innerHTML = `<small>Jour</small>${cd}`;
+  let sub;
+  if (S.pill === '21-7' && p.inPause) {
+    $('#ring-day').innerHTML = `<small>Pause</small>${cd - p.active}`;
+    sub = `sur ${p.pause} jours`;
+  } else {
+    $('#ring-day').innerHTML = `<small>Pilule</small>${cd}`;
+    sub = p.inPause ? 'placebo' : `sur ${S.pill === '21-7' ? p.active : L}`;
+  }
   const st = status(t);
-  let sub = cont ? 'de la plaquette' : `sur ${L} jours`;
   if (st) sub += `<br><span class="ring-chip">Règles · jour ${t - streak(t).start + 1}</span>`;
   $('#ring-sub').innerHTML = sub;
 
   $('#ring-stats').innerHTML = [
-    [cont ? '—' : `${S.periodLength} j`, 'Règles'],
-    [`${L} j`, cont ? 'Plaquette' : 'Cycle'],
+    [cont ? '—' : `${periodLen()} j`, 'Règles'],
+    [cont ? '—' : `J${S.periodFrom} → J${S.periodTo}`, 'Plaquette'],
     [PILLS[S.pill].label, 'Pilule'],
   ].map(([v, l]) => `<div><span class="stat-value">${v}</span><span class="stat-label">${l}</span></div>`).join('');
 }
@@ -206,7 +262,7 @@ function renderNext(t) {
   card.innerHTML = head(I.drop, 'Prochaines règles') +
     `<div class="title-2 next-date">${longDate(next)}</div>
      <div class="next-meta"><span class="pill">${cap(relDays(next - t))}</span></div>
-     <p class="footnote" style="margin-top:10px">${plural(S.periodLength, 'jour')} prévus, jusqu’au ${F.long.format(dateOf(next + S.periodLength - 1))}</p>`;
+     <p class="footnote" style="margin-top:10px">${plural(periodLen(), 'jour')} prévus, jusqu’au ${F.long.format(dateOf(next + periodLen() - 1))}<br>${cap(rangeText())}</p>`;
 }
 
 function renderPack(t) {
@@ -224,7 +280,8 @@ function renderPack(t) {
   }
   let cells = '';
   for (let i = 0; i < p.L; i++) {
-    const cls = [i < p.day - 1 ? 'taken' : '', i === p.day - 1 ? 'now' : '', i >= p.active ? 'pause' : ''].filter(Boolean).join(' ');
+    const per = !cont && mod(i + 1 - S.periodFrom, PACK) < periodLen();
+    const cls = [i < p.day - 1 ? 'taken' : '', i === p.day - 1 ? 'now' : '', i >= p.active ? 'pause' : '', per ? 'per' : ''].filter(Boolean).join(' ');
     cells += `<i class="${cls}"></i>`;
   }
   const nextLabel = p.day === 1 ? 'Nouvelle plaquette' : 'Prochaine plaquette';
@@ -296,6 +353,7 @@ function renderCalendar() {
         label += st === 'c' ? ', règles confirmées' : ', règles prévues';
       }
       if (d === t) { cls += ' is-today'; label = 'Aujourd’hui, ' + label; }
+      if (S.packStart !== null && packDay(d) === 1) { cls += ' is-pack'; label += ', nouvelle plaquette'; }
       html += `<button class="${cls}" data-d="${d}" aria-label="${label}">${band}<span class="num">${n}</span></button>`;
     }
     html += '</div></div></section>';
@@ -317,14 +375,29 @@ function scrollCalendarTo(d, smooth, flash) {
 
 /* ═════════ Réglages ═════════ */
 
+// Début et fin des règles : pilules 1 à 28, en boucle d'une plaquette à l'autre.
+function stepPeriod(k, step) {
+  const v = mod(S[k] - 1 + step, PACK) + 1;
+  const len = mod((k === 'periodTo' ? v : S.periodTo) - (k === 'periodFrom' ? v : S.periodFrom), PACK) + 1;
+  return len <= MAX_PERIOD ? v : S[k];
+}
+
 function renderControls() {
-  $$('[data-show="periodLength"]').forEach(e => { e.textContent = plural(S.periodLength, 'jour'); });
-  $$('[data-show="cycleLength"]').forEach(e => { e.textContent = plural(S.cycleLength, 'jour'); });
+  const cont = isContinu();
+  $$('[data-show="periodFrom"]').forEach(e => { e.textContent = cap(pillName(S.periodFrom)); });
+  $$('[data-show="periodTo"]').forEach(e => {
+    e.textContent = cap(pillName(S.periodTo)) + (S.periodTo < S.periodFrom ? ' · plaquette suivante' : '');
+  });
   $$('.stepper').forEach(st => {
-    const k = st.dataset.key, [lo, hi] = LIMITS[k];
+    const k = st.dataset.key;
     const [minus, plus] = $$('button', st);
-    minus.disabled = S[k] <= lo || (k === 'cycleLength' && S[k] <= S.periodLength + 1);
-    plus.disabled = S[k] >= hi || (k === 'periodLength' && S[k] >= S.cycleLength - 1);
+    minus.disabled = cont || stepPeriod(k, -1) === S[k];
+    plus.disabled = cont || stepPeriod(k, 1) === S[k];
+  });
+  $$('.js-period').forEach(r => r.classList.toggle('row-disabled', cont));
+  $$('[data-period-help]').forEach(e => {
+    e.textContent = cont ? 'Aucune règle n’est prévue en prise continue.'
+      : `Règles prévues dans chaque plaquette ${rangeText()}, soit ${plural(periodLen(), 'jour')}.`;
   });
   $$('.segmented').forEach(sg => {
     const idx = PILL_KEYS.indexOf(S.pill);
@@ -332,9 +405,7 @@ function renderControls() {
     $$('button', sg).forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === S.pill)));
   });
   $$('[data-pill-help]').forEach(e => { e.textContent = PILLS[S.pill].help; });
-  $('#val-last').textContent = S.lastStart === null ? '—' : F.shortY.format(dateOf(S.lastStart));
-  $('#row-period').classList.toggle('row-disabled', isContinu());
-  $('#cycle-label').textContent = isContinu() ? 'Durée de la plaquette' : 'Durée du cycle';
+  $('#val-last').textContent = S.packStart === null ? '—' : F.shortY.format(dateOf(currentPackStart()));
 }
 
 function renderAll() {
@@ -456,10 +527,10 @@ function openSheet(html, cls = '') {
 function openDaySheet(d) {
   const t = todayNum(), st = status(d), pred = predicted(d), p = pack(d);
   const statusText = st === 'c' ? 'Règles confirmées'
-    : st === 'p' ? `Règles prévues · jour ${cycleDay(d)} sur ${S.periodLength}`
+    : st === 'p' ? `Règles prévues · jour ${periodDay(d)} sur ${periodLen()}`
     : pred ? 'Prévision retirée' : 'Aucune règle prévue';
   const packText = S.pill === '21-7' && p.inPause ? `Pause · jour ${p.day - p.active} sur ${p.pause}`
-    : `Jour ${p.day} · ${p.inPause ? 'placebo' : 'comprimé actif'}`;
+    : `Pilule ${p.day}${p.inPause ? ' · placebo' : ''}`;
   let actions = '';
   if (st !== 'c') actions += '<button class="btn btn-primary" data-act="mark">Marquer comme règles</button>';
   if (st) actions += '<button class="btn btn-danger-tinted" data-act="remove">Retirer</button>';
@@ -488,20 +559,20 @@ function openDaySheet(d) {
 }
 
 function openDateSheet() {
-  let value = S.lastStart;
+  let value = currentPackStart();
   const { sheet, close } = openSheet(`
     <div class="sheet-head">
       <button class="bar-btn" data-act="cancel">Annuler</button>
-      <h2>Dernières règles</h2>
+      <h2>Début de plaquette</h2>
       <button class="bar-btn" data-act="ok">OK</button>
     </div>
     <div class="card picker-card"></div>
-    <p class="sheet-note">Le premier jour de vos dernières règles. Toutes les prévisions seront recalculées.</p>`, 'sheet-grouped');
+    <p class="sheet-note">Le jour de la 1re pilule de votre plaquette en cours. Les plaquettes suivantes s’enchaînent tous les 28 jours.</p>`, 'sheet-grouped');
   mountPicker($('.picker-card', sheet), value, v => { value = v; });
   sheet.addEventListener('click', e => {
     const b = e.target.closest('[data-act]');
     if (!b) return;
-    if (b.dataset.act === 'ok' && value !== null) { S.lastStart = value; save(); renderAll(); }
+    if (b.dataset.act === 'ok' && value !== null) { S.packStart = value; save(); renderAll(); }
     close();
   });
 }
@@ -606,7 +677,7 @@ function updateOnboarding() {
   obDots.forEach((d, i) => d.classList.toggle('is-active', i === obPage));
   obBack.classList.toggle('is-hidden', obPage === 0);
   obNext.textContent = obPage === 2 ? 'Commencer' : 'Continuer';
-  obNext.disabled = obPage === 1 && S.lastStart === null;
+  obNext.disabled = obPage === 1 && S.packStart === null;
 }
 
 function startOnboarding() {
@@ -614,7 +685,7 @@ function startOnboarding() {
   ob.hidden = false;
   ob.classList.remove('is-leaving');
   $('#app').inert = true;
-  mountPicker($('#ob-picker'), S.lastStart, v => { S.lastStart = v; updateOnboarding(); });
+  mountPicker($('#ob-picker'), S.packStart, v => { S.packStart = v; updateOnboarding(); });
   renderControls();
   updateOnboarding();
 }
@@ -646,8 +717,8 @@ document.addEventListener('click', e => {
 
   const step = e.target.closest('.stepper button');
   if (step) {
-    const k = step.closest('.stepper').dataset.key, [lo, hi] = LIMITS[k];
-    const v = Math.min(hi, Math.max(lo, S[k] + Number(step.dataset.step)));
+    const k = step.closest('.stepper').dataset.key;
+    const v = stepPeriod(k, Number(step.dataset.step));
     if (v !== S[k]) { S[k] = v; save(); renderAll(); }
     return;
   }

@@ -83,7 +83,7 @@
 
 html, body {
   margin: 0;
-  height: 100%;
+  height: var(--app-h, 100%);
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
@@ -134,9 +134,11 @@ svg { display: block; overflow: visible; }
 
 /* ───────── Structure ───────── */
 
+/* --app-h : hauteur réelle de l'écran (voir fitScreen dans app.js) */
 #app {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; left: 0;
+  height: var(--app-h, 100%);
   overflow: hidden;
 }
 
@@ -370,6 +372,7 @@ svg { display: block; overflow: visible; }
 .ring-rot {
   transform: rotate(-90deg);
   transform-origin: 140px 140px;
+  transition: transform 600ms var(--spring);
 }
 .ring-arc {
   fill: none;
@@ -572,6 +575,8 @@ svg { display: block; overflow: visible; }
 .blister i.pause { background: transparent; box-shadow: inset 0 0 0 1.5px var(--label-3); }
 .blister i.pause.taken { box-shadow: inset 0 0 0 1.5px var(--accent-soft); }
 .blister i.pause.now { background: transparent; box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 2.5px var(--accent-wash); }
+/* Pilules où les règles sont prévues */
+.blister i.per:not(.now) { box-shadow: inset 0 0 0 2px var(--accent); }
 
 .pack-next {
   display: flex;
@@ -717,6 +722,21 @@ svg { display: block; overflow: visible; }
 .day.is-today.has-p .num,
 .day.is-today.has-c .num { box-shadow: 0 0 0 2px var(--card); }
 .day.flash .num { animation: flash 700ms var(--spring); }
+/* Premier jour d'une plaquette */
+.day.is-pack::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 8px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--label-2);
+}
+.day.is-pack.has-c::after, .day.is-pack.is-today::after { background: #FFFFFF; }
+.day.is-pack.has-p::after { background: var(--accent-ink); }
 @keyframes flash {
   0% { transform: scale(1); }
   35% { transform: scale(1.18); }
@@ -748,6 +768,7 @@ svg { display: block; overflow: visible; }
 .sw { width: 18px; height: 10px; border-radius: 5px; display: block; }
 .sw-p { background: var(--accent-soft); }
 .sw-c { background: var(--accent); }
+.sw-pack { width: 5px; height: 5px; border-radius: 50%; background: var(--label-2); display: block; }
 
 /* ───────── Réglages : listes groupées ───────── */
 
@@ -981,7 +1002,8 @@ svg { display: block; overflow: visible; }
 
 .sheet-layer {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; left: 0;
+  height: var(--app-h, 100%);
   z-index: 100;
 }
 .sheet-backdrop {
@@ -1192,7 +1214,8 @@ svg { display: block; overflow: visible; }
 
 #onboarding {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; left: 0;
+  height: var(--app-h, 100%);
   z-index: 60;
   display: flex;
   flex-direction: column;

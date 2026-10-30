@@ -1,6 +1,6 @@
 // Cycle — fonctionnement 100 % hors connexion.
 // Changer VERSION à chaque mise en ligne pour rafraîchir le cache.
-const VERSION = 'cycle-v1';
+const VERSION = 'cycle-v2';
 const SHELL = [
   './',
   'index.html',
